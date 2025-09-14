@@ -1,0 +1,103 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <title>📳 Pinger</title>
+</head>
+<body>
+  <h2>📳 Pinger</h2>
+  <h4>Set a reminder for stuff</h4>
+
+  <label>
+    Title:
+    <input id="title" type="text" value="⏰ Reminder!">
+  </label>
+  <br><br>
+
+  <label>
+    Body:
+    <input id="body" type="text" placeholder="Enter reminder text">
+  </label>
+  <br><br>
+
+  <label>
+    Interval (minutes):
+    <input id="mins" type="number" min="1" value="15">
+  </label>
+  <br><br>
+
+  <label>
+    <input id="stay" type="checkbox"> Keep notification until dismissed
+  </label>
+  <br><br>
+
+  <button id="start">Start Reminder</button>
+  <button id="stop" disabled>Stop Reminder</button>
+
+  <script>
+    // fns
+    let reminderInterval = null;
+
+    function saveSettings() {
+      const settings = {
+        title: document.getElementById("title").value,
+        body: document.getElementById("body").value,
+        mins: document.getElementById("mins").value,
+        stay: document.getElementById("stay").checked,
+      };
+      localStorage.setItem("reminderSettings", JSON.stringify(settings));
+    }
+
+    // startup
+    window.addEventListener("DOMContentLoaded", () => {
+      const saved = JSON.parse(localStorage.getItem("reminderSettings") || "{}");
+      if (saved.title) document.getElementById("title").value = saved.title;
+      if (saved.body) document.getElementById("body").value = saved.body;
+      if (saved.mins) document.getElementById("mins").value = saved.mins;
+      if (saved.stay) document.getElementById("stay").checked = saved.stay;
+    });
+
+    // ev handlers
+    document.getElementById("start").addEventListener("click", () => {
+      Notification.requestPermission().then((perm) => {
+        if (perm === "granted") {
+          const title = document.getElementById("title").value || "⏰ Reminder!";
+          const body = document.getElementById("body").value || "";
+          const mins = Math.max(1, Number(document.getElementById("mins").value) || 15);
+          const requireInteraction = document.getElementById("stay").checked;
+
+          saveSettings(); // Save when starting
+
+          if (reminderInterval) clearInterval(reminderInterval);
+
+          reminderInterval = setInterval(() => {
+            new Notification(title, { body, requireInteraction });
+          }, mins * 60 * 1000);
+
+          document.getElementById("start").disabled = true;
+          document.getElementById("stop").disabled = false;
+          alert(`Reminder started! Every ${mins} minute(s).`);
+        } else {
+          alert("Notifications blocked by browser.");
+        }
+      });
+    });
+
+    document.getElementById("stop").addEventListener("click", () => {
+      if (reminderInterval) {
+        clearInterval(reminderInterval);
+        reminderInterval = null;
+        alert("Reminder stopped.");
+      }
+      document.getElementById("start").disabled = false;
+      document.getElementById("stop").disabled = true;
+    });
+
+    // Save whenever inputs change
+    ["title", "body", "mins", "stay"].forEach(id => {
+      document.getElementById(id).addEventListener("input", saveSettings);
+      document.getElementById(id).addEventListener("change", saveSettings);
+    });
+  </script>
+</body>
+</html>
