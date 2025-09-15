@@ -47,8 +47,12 @@
       statusDiv.style.color = isError ? "#c62828" : "#2e7d32";
       statusDiv.style.border = `1px solid ${isError ? "#ef5350" : "#4caf50"}`;
       
-      // Also show alert as backup
-      alert(message);
+      // Auto-hide success messages after 5 seconds
+      if (!isError) {
+        setTimeout(() => {
+          statusDiv.style.display = "none";
+        }, 5000);
+      }
     }
 
     function saveSettings() {
